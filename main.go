@@ -1,13 +1,18 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
+	"io/ioutil"
+	"net/http"
 	"os"
 
 	log "github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+
+	"github.com/fluxcd/pkg/runtime/events"
 )
 
 func main() {
@@ -47,5 +52,25 @@ func main() {
 		panic(err)
 	}
 
-	log.Infoln("Hello world")
+	log.Infoln("Hello world1")
+	http.HandleFunc("/hello", hello)
+	http.ListenAndServe(":8081", nil)
+}
+
+func hello(w http.ResponseWriter, req *http.Request) {
+	log.Infoln("hello")
+
+	body, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	var e events.Event
+	err = json.Unmarshal(body, &e)
+	if err != nil {
+		panic(err)
+	}
+	log.Infoln(e.Message)
+	log.Infoln(e.Reason)
+	log.Infoln(e.Timestamp)
 }

@@ -8,8 +8,8 @@ RUN make build
 
 FROM alpine:3.14
 
-RUN adduser --home /home/radek --disabled-password radek
-WORKDIR /home/radek
+RUN adduser --home /home/dorsradek --disabled-password dorsradek
+WORKDIR /home/dorsradek
 COPY --from=builder /build/app .
-USER radek
-ENTRYPOINT ["/home/radek/app"]
+USER dorsradek
+ENTRYPOINT ["/home/dorsradek/app"]
