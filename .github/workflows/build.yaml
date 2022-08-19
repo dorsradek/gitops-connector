@@ -1,0 +1,36 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+env:
+  IMAGE_NAME: gitops-connector
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build Docker Image
+        run: |
+          docker build -t ${{ github.sha }} .
+
+      - name: Log in to registry
+        if: github.ref == 'refs/heads/main'
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Push image
+        if: github.ref == 'refs/heads/main'
+        run: |
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
+          VERSION=${{ github.sha }}
+          docker tag ${{ github.sha }} $IMAGE_ID:$VERSION
+          docker tag ${{ github.sha }} $IMAGE_ID:latest
+          docker push $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:latest
